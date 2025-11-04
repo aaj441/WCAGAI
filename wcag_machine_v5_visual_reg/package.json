@@ -1,0 +1,29 @@
+{
+  "name": "wcag_machine",
+  "version": "5.0.0",
+  "description": "Agentic WCAG Compliance Machine – modular accessibility scanning and outreach pipeline",
+  "type": "module",
+  "scripts": {
+    "capture": "node scripts/capture-all.js",
+    "test:visual": "node test/visual-capture.test.js",
+    "orchestrate": "bash orchestrate.sh"
+    ,
+    "scan-worker": "node agent-scan-worker.service.js",
+    "replay-worker": "node agent-replay.service.js",
+    "badge-worker": "node agent-badge.service.js"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.21.0",
+    "serpapi": "^1.0.0",
+    "pixelmatch": "^5.2.0",
+    "pngjs": "^6.0.0",
+    "playwright": "^1.41.0",
+    "puppeteer-core": "^21.0.0",
+    "@sparticuz/chromium": "^122.0.0",
+    "axe-core": "^4.7.3",
+    "@hubspot/api-client": "^6.0.1"
+    ,
+    "bullmq": "^4.0.3",
+    "pg": "^8.11.0"
+  }
+}
