@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "health-server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/health",
+      "dest": "health-server.js"
+    },
+    {
+      "src": "/metrics",
+      "dest": "health-server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "health-server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
