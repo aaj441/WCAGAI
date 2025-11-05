@@ -8,10 +8,13 @@
     "start:health": "node health.js",
     "start:server": "node server.js",
     "start:orchestrator": "bash wcag_machine_v5_visual_reg/orchestrate.sh",
+    "start:railway": "concurrently \"bash orchestrate-railway.sh accessibility\" \"node health.js\"",
     "dev": "nodemon server.js",
     "orchestrate": "bash wcag_machine_v5_visual_reg/orchestrate.sh",
+    "orchestrate:railway": "bash orchestrate-railway.sh",
     "test:probes": "node test-probes.js",
     "deploy": "bash deploy.sh",
+    "deploy:railway": "bash railway-deploy.sh",
     "logs:view": "tail -f logs/combined.log",
     "logs:error": "tail -f logs/error.log"
   },
