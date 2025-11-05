@@ -4,7 +4,10 @@
   "description": "Unified WCAGAI accessibility compliance platform - Gemini 2.0 + AAG Badge API + Agentic Pipeline",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "concurrently \"bash wcag_machine_v5_visual_reg/orchestrate.sh accessibility\" \"node health.js\"",
+    "start:health": "node health.js",
+    "start:server": "node server.js",
+    "start:orchestrator": "bash wcag_machine_v5_visual_reg/orchestrate.sh",
     "dev": "nodemon server.js",
     "orchestrate": "bash wcag_machine_v5_visual_reg/orchestrate.sh",
     "test:probes": "node test-probes.js",
@@ -38,7 +41,8 @@
     "winston": "^3.11.0",
     "dotenv": "^16.3.1",
     "axios": "^1.6.2",
-    "serpapi": "^2.0.1"
+    "serpapi": "^2.0.1",
+    "concurrently": "^8.2.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

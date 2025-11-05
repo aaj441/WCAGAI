@@ -5,12 +5,9 @@
 # Each agent is spawned in the background and its process ID is recorded.  
 # The script waits for all agents to finish and reports success when every agent exits cleanly.
 
-if [[ -z "$1" ]]; then
-  echo "Usage: $0 <keyword>"
-  exit 1
-fi
-
-KEYWORD="$1"
+# Use provided keyword or default to "accessibility" for Railway/cloud deployments
+KEYWORD=${1:-accessibility}
+echo "🔍 Running WCAGAI pipeline with keyword: $KEYWORD"
 pids=()
 
 # Launch keyword→URLs agent
