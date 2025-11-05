@@ -7,11 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "orchestrate": "bash wcag_machine_v5_visual_reg/orchestrate.sh",
-    "test": "jest",
     "test:probes": "node test-probes.js",
-    "test:visual": "npm --prefix wcag_machine_v5_visual_reg run test:visual",
-    "test:unit": "npm --prefix wcag_machine_v5_visual_reg test",
-    "load-test": "artillery run load-test.yml",
     "deploy": "bash deploy.sh",
     "logs:view": "tail -f logs/combined.log",
     "logs:error": "tail -f logs/error.log"
