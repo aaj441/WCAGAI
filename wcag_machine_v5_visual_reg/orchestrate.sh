@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 
-# Orchestration script for running all agents in parallel.  
-# The script accepts a single argument – the search keyword.  
-# Each agent is spawned in the background and its process ID is recorded.  
+# Orchestration script for running all agents in parallel.
+# The script accepts a single argument – the search keyword.
+# Each agent is spawned in the background and its process ID is recorded.
 # The script waits for all agents to finish and reports success when every agent exits cleanly.
+
+# Change to script's directory (critical for Railway deployment)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR" || exit 1
 
 # Use provided keyword or default to "accessibility" for Railway/cloud deployments
 KEYWORD=${1:-accessibility}
 echo "🔍 Running WCAGAI pipeline with keyword: $KEYWORD"
+echo "📂 Working directory: $SCRIPT_DIR"
 pids=()
 
 # Launch keyword→URLs agent
