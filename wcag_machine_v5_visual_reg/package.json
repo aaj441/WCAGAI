@@ -3,6 +3,10 @@
   "version": "5.0.0",
   "description": "Agentic WCAG Compliance Machine – modular accessibility scanning and outreach pipeline",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "start": "node health-server.js",
     "capture": "node scripts/capture-all.js",

@@ -1,0 +1,14 @@
+# Nixpacks configuration for WCAGAI v2.0
+# Specifies Node.js 20.x using correct Nix package naming
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm ci --production=false"]
+
+[phases.build]
+cmds = ["echo 'Build phase - no build step needed'"]
+
+[start]
+cmd = "npm start"
