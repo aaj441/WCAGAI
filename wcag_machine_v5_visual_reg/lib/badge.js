@@ -9,7 +9,7 @@
  * @version 2.0.0 (Enhanced with AAG Badge API capabilities)
  */
 
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 /**
  * Determines AAG compliance level based on violations
@@ -163,7 +163,7 @@ function decryptUserPreferences(encryptedData, key = process.env.ENCRYPTION_KEY)
   return JSON.parse(decrypted);
 }
 
-module.exports = {
+export {
   mintBadge,
   determineComplianceLevel,
   getBadgeColors,

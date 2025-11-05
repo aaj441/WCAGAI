@@ -13,7 +13,7 @@
  * @version 2.0.0
  */
 
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 /**
  * LucyQ Persona Configuration
@@ -370,7 +370,7 @@ class LucyPersona {
   }
 }
 
-module.exports = {
+export {
   LucyPersona,
   MusicalPacer,
   PromptEngineer,

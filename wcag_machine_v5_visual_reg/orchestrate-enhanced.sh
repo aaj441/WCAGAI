@@ -188,11 +188,27 @@ fi
 
 musical_pause
 
+# Wait for Stage 1 (keyword agent) to complete before proceeding
+log_info "Waiting for keyword agent to complete..."
+if ! wait "${pids[0]}"; then
+  log_error "Stage 1 (keyword agent) failed - cannot proceed"
+  log_warn "Check logs/keyword-agent.log for details"
+  exit 1
+fi
+log_success "Stage 1 completed successfully"
+
 # ============================================================================
 # Stage 2: URL Scanning with Axe-core
 # ============================================================================
 
 log_stage "2/7" "Scanning URLs for accessibility violations"
+
+# Prerequisite check: Verify URLs were discovered
+if [[ ! -f "results/urls.json" ]] && [[ ! -f "./urls.json" ]]; then
+  log_error "No URLs found from Stage 1 - cannot proceed with scanning"
+  log_warn "Expected results/urls.json or urls.json to exist"
+  exit 1
+fi
 
 if [[ "$USE_BULLMQ" == "true" ]]; then
   log_info "Using BullMQ worker for scanning..."
@@ -214,9 +230,28 @@ fi
 
 musical_pause
 
+# Wait for Stage 2 (scan agent) to complete before proceeding
+log_info "Waiting for scan agent to complete..."
+SCAN_PID_INDEX=$((${#pids[@]} - 1))
+if ! wait "${pids[$SCAN_PID_INDEX]}"; then
+  log_error "Stage 2 (scan agent) failed - cannot proceed"
+  log_warn "Check logs/scan-agent.log or logs/scan-worker.log for details"
+  exit 1
+fi
+log_success "Stage 2 completed successfully"
+
+musical_pause
+
 # ============================================================================
 # Stage 3: LucyQ AI Analysis (Enhanced Gemini)
 # ============================================================================
+
+# Prerequisite check: Verify scan results exist
+if [[ ! -f "results/scan-results.json" ]] && [[ ! -f "./scan-results.json" ]]; then
+  log_warn "No scan results found from Stage 2 - skipping AI analysis"
+  log_info "Expected results/scan-results.json or scan-results.json to exist"
+  SKIP_GEMINI="true"
+fi
 
 if [[ "$SKIP_GEMINI" == "false" ]]; then
   log_stage "3/7" "Analyzing with LucyQ AI (Gemini 2.0 + WCAGAI)"
@@ -232,6 +267,18 @@ if [[ "$SKIP_GEMINI" == "false" ]]; then
     pids+=("$!")
     agent_names+=("gemini-lucy")
     log_success "LucyQ AI started (PID: $!)"
+
+    musical_pause
+
+    # Wait for Stage 3 (Gemini agent) to complete before proceeding
+    log_info "Waiting for Gemini AI agent to complete..."
+    GEMINI_PID_INDEX=$((${#pids[@]} - 1))
+    if ! wait "${pids[$GEMINI_PID_INDEX]}"; then
+      log_warn "Stage 3 (Gemini AI) failed - continuing without AI analysis"
+      log_warn "Check logs/gemini-agent.log for details"
+    else
+      log_success "Stage 3 completed successfully"
+    fi
   else
     log_error "agent-gemini.service.js not found - continuing without AI analysis"
   fi
@@ -244,6 +291,13 @@ fi
 # ============================================================================
 
 log_stage "4/7" "Generating AAG compliance badges"
+
+# Prerequisite check: Verify scan or analysis results exist
+if [[ ! -f "results/scan-results.json" ]] && [[ ! -f "./scan-results.json" ]] && \
+   [[ ! -f "results/analysis-results.json" ]] && [[ ! -f "./analysis-results.json" ]]; then
+  log_error "No scan or analysis results found - cannot generate badges"
+  exit 1
+fi
 
 if [[ -f "agent-badge.service.js" ]]; then
   log_info "Launching badge generation agent..."

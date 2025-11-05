@@ -11,7 +11,7 @@
  * @version 2.0.0
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // WCAGAI System Instruction (21 Rules)
 const WCAGAI_SYSTEM_INSTRUCTION = `You are WCAGAI (Web Content Accessibility Guidelines AI), an expert accessibility consultant powered by 21 embedded rules across 6 dimensions:
@@ -66,7 +66,16 @@ Always prioritize user empowerment and inclusive design.`;
 class GeminiClient {
   constructor(apiKey = process.env.GEMINI_API_KEY) {
     if (!apiKey) {
-      throw new Error('GEMINI_API_KEY is required');
+      const errorMsg = [
+        'GEMINI_API_KEY is required',
+        '',
+        '💡 API Key Setup:',
+        '   1. Get your Gemini API key: https://aistudio.google.com/app/apikey',
+        '   2. Add to .env file: GEMINI_API_KEY=your_key_here',
+        '   3. Or set environment variable: export GEMINI_API_KEY=your_key_here',
+        ''
+      ].join('\n');
+      throw new Error(errorMsg);
     }
 
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -156,7 +165,7 @@ function createGeminiClient(apiKey) {
   return new GeminiClient(apiKey);
 }
 
-module.exports = {
+export {
   GeminiClient,
   createGeminiClient,
   WCAGAI_SYSTEM_INSTRUCTION

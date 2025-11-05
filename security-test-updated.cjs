@@ -38,9 +38,8 @@ function detectPromptInjection(input) {
     { regex: /eval\s*\(/i, name: 'eval_function' },
     { regex: /prompt\s*\(/i, name: 'prompt_function' },
     // Multiline bypass detection (addresses newline splitting attacks)
-    { regex: /(?:output|print|show|display|reveal|tell|give)[\s\n]+(?:me|us)?[\s\n]*(?:all|the|your)?[\s\n]*(?:system|internal|hidden|secret)[\s\n]*(?:prompts?|instructions?|rules?|guidelines?|settings?)/is, name: 'prompt_exfiltration' },
-    { regex: /(?:what|show|tell|list|print)[\s\n]+(?:me|us)?[\s\n]*(?:are|is|your)?[\s\n]*(?:system|base|core|hidden)[\s\n]*(?:prompts?|instructions?|rules?|directives?)/is, name: 'prompt_query' },
-    { regex: /show\s+me\s+(?:all\s+)?(?:your\s+)?(?:system|hidden|internal|secret)\s+(?:prompts?|instructions?)/is, name: 'show_me_prompts' },
+    { regex: /(?:output|print|show|display|reveal|tell|give)[\s\n]+(?:all|the|your)?[\s\n]*(?:system|internal|hidden|secret)[\s\n]*(?:prompt|instruction|rule|guideline|setting)/is, name: 'prompt_exfiltration' },
+    { regex: /(?:what|show|tell|list|print)[\s\n]+(?:are|is|your)?[\s\n]*(?:system|base|core|hidden)[\s\n]*(?:prompt|instruction|rule|directive)/is, name: 'prompt_query' },
     { regex: /AND[\s\n]+(?:OUTPUT|PRINT|SHOW|DISPLAY)/i, name: 'sql_style_command' },
     { regex: /\$\([^)]{0,50}\)/i, name: 'command_substitution' },
     { regex: /`[^`]{0,50}`/i, name: 'backtick_execution' }

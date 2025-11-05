@@ -21,10 +21,11 @@
  * @author Aaron J. (aaj441)
  */
 
-const { createGeminiClient } = require('./lib/gemini');
-const { createRedisClient } = require('./lib/redis');
-const fs = require('fs');
-require('dotenv').config();
+import { createGeminiClient } from './lib/gemini.js';
+import { redis } from './lib/redis.js';
+import fs from 'fs';
+import 'dotenv/config';
+import { fileURLToPath } from 'url';
 
 // ============================================================================
 // Configuration
@@ -51,7 +52,6 @@ async function fetchScanResults(scanId) {
 
   // Try to fetch from Redis
   if (REDIS_AVAILABLE) {
-    const redis = createRedisClient();
     const key = `t:${TENANT_ID}:scan:${scanId}`;
     const data = await redis.get(key);
 
@@ -77,7 +77,6 @@ async function storeAnalysis(scanId, analysis) {
     return;
   }
 
-  const redis = createRedisClient();
   const key = `t:${TENANT_ID}:analysis:${scanId}`;
 
   await redis.set(key, JSON.stringify(analysis), {
@@ -149,7 +148,11 @@ async function analyzeWithGemini(scanId) {
 // CLI Entry Point
 // ============================================================================
 
-if (require.main === module) {
+// ES modules: check if file is being run directly
+const __filename = fileURLToPath(import.meta.url);
+const isMainModule = process.argv[1] === __filename;
+
+if (isMainModule) {
   const scanId = process.argv[2];
 
   if (!scanId) {
@@ -168,4 +171,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { analyzeWithGemini };
+export { analyzeWithGemini };

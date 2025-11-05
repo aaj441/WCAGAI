@@ -43,5 +43,11 @@ try {
   console.log(JSON.stringify({ ok: true, count: urls.length, urls }));
 } catch (err) {
   console.error('❌ failed to fetch SERP results:', err);
+  console.error('');
+  console.error('💡 API Key Setup:');
+  console.error('   1. Get your SerpAPI key: https://serpapi.com/manage-api-key');
+  console.error('   2. Add to .env file: SERPAPI_KEY=your_key_here');
+  console.error('   3. Or set environment variable: export SERPAPI_KEY=your_key_here');
+  console.error('');
   process.exit(1);
 }
