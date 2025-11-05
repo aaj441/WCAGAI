@@ -1,0 +1,13 @@
+# Nixpacks Configuration for Railway
+# WCAGAI v2.0 - Simplified to let Railway auto-detect Node.js
+
+# Let Nixpacks auto-detect Node.js from package.json engines field
+# This is more reliable than specifying nixPkgs manually
+
+[phases.install]
+# Install all dependencies (including concurrently)
+cmds = ["npm ci"]
+
+[start]
+# Use npm start (runs: concurrently health.js + orchestrate.sh)
+cmd = "npm start"
