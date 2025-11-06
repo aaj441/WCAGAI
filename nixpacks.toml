@@ -1,8 +1,8 @@
 # Nixpacks Configuration for Railway
-# Simplified configuration to prevent Nix package conflicts
+# Includes Node.js for npm support
 
 [phases.setup]
-nixPkgs = []
+nixPkgs = ["nodejs"]
 
 [phases.install]
 cmds = ["npm install --omit=dev"]
