@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "NEXT_PUBLIC_BACKEND_URL": "@backend_url"
+  },
+  "buildCommand": "npm run build || next build",
+  "outputDirectory": ".next"
+}
