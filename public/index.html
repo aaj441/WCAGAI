@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WCAGAI - Accessibility Scanner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+  <div id="app"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function App() {
+      const [url, setUrl] = useState("");
+      const [keyword, setKeyword] = useState("");
+      const [scanResult, setScanResult] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState("");
+      const [activeTab, setActiveTab] = useState("url"); // 'url' or 'keyword'
+
+      async function handleUrlScan(e) {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        setScanResult(null);
+
+        try {
+          const res = await fetch("/api/scan/url", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url })
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || "Scan failed");
+          }
+
+          const data = await res.json();
+          setScanResult(data);
+        } catch (err) {
+          setError(err.message || "Scan failed! Try again.");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function handleKeywordScan(e) {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        setScanResult(null);
+
+        try {
+          const res = await fetch("/api/gemini/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: `Find accessibility information about: ${keyword}`,
+              context: { task: "keyword_search" }
+            })
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || "Search failed");
+          }
+
+          const data = await res.json();
+          setScanResult(data);
+        } catch (err) {
+          setError(err.message || "Search failed! Try again.");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+          {/* Header */}
+          <header className="bg-white shadow-sm border-b">
+            <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <i className="fas fa-universal-access text-3xl text-blue-600"></i>
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">WCAGAI</h1>
+                    <p className="text-sm text-gray-600">Web Content Accessibility AI</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
+                    Online
+                  </span>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            {/* Welcome Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Accessibility Compliance Scanner
+              </h2>
+              <p className="text-gray-600">
+                Analyze websites for WCAG compliance using AI-powered accessibility testing with Gemini 2.0 and AAG Badge verification.
+              </p>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex space-x-4 mb-6">
+              <button
+                onClick={() => setActiveTab("url")}
+                className={`px-6 py-3 rounded-lg font-medium transition ${
+                  activeTab === "url"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <i className="fas fa-link mr-2"></i>
+                Scan URL
+              </button>
+              <button
+                onClick={() => setActiveTab("keyword")}
+                className={`px-6 py-3 rounded-lg font-medium transition ${
+                  activeTab === "keyword"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <i className="fas fa-search mr-2"></i>
+                Search Companies
+              </button>
+            </div>
+
+            {/* URL Scan Form */}
+            {activeTab === "url" && (
+              <form
+                onSubmit={handleUrlScan}
+                className="bg-white rounded-lg shadow-md p-6 mb-8"
+              >
+                <label className="block text-lg font-medium mb-2 text-gray-700">
+                  <i className="fas fa-globe mr-2 text-blue-600"></i>
+                  Website URL to Scan
+                </label>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enter the full URL of the website you want to test for accessibility compliance.
+                </p>
+                <div className="flex gap-3">
+                  <input
+                    className="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    type="url"
+                    placeholder="https://example.com"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <><i className="fas fa-spinner fa-spin mr-2"></i>Scanning...</>
+                    ) : (
+                      <><i className="fas fa-search mr-2"></i>Scan</>
+                    )}
+                  </button>
+                </div>
+                {error && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-start">
+                    <i className="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+                    <span>{error}</span>
+                  </div>
+                )}
+              </form>
+            )}
+
+            {/* Keyword Search Form */}
+            {activeTab === "keyword" && (
+              <form
+                onSubmit={handleKeywordScan}
+                className="bg-white rounded-lg shadow-md p-6 mb-8"
+              >
+                <label className="block text-lg font-medium mb-2 text-gray-700">
+                  <i className="fas fa-building mr-2 text-blue-600"></i>
+                  Search Companies or Keywords
+                </label>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enter keywords to find and analyze companies (e.g., "pharmaceutical companies", "tech startups").
+                </p>
+                <div className="flex gap-3">
+                  <input
+                    className="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    type="text"
+                    placeholder="pharmaceutical companies"
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <><i className="fas fa-spinner fa-spin mr-2"></i>Searching...</>
+                    ) : (
+                      <><i className="fas fa-search mr-2"></i>Search</>
+                    )}
+                  </button>
+                </div>
+                {error && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-start">
+                    <i className="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+                    <span>{error}</span>
+                  </div>
+                )}
+              </form>
+            )}
+
+            {/* Results Display */}
+            {scanResult && (
+              <div className="bg-white rounded-lg shadow-md p-6 animate-fade-in">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                    <i className="fas fa-check-circle text-green-600 mr-2"></i>
+                    {activeTab === "url" ? "Scan Results" : "Search Results"}
+                  </h2>
+                  <button
+                    onClick={() => setScanResult(null)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+
+                {/* Status Badge */}
+                {scanResult.status && (
+                  <div className="mb-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      <i className="fas fa-info-circle mr-2"></i>
+                      Status: {scanResult.status}
+                    </span>
+                  </div>
+                )}
+
+                {/* Scan ID */}
+                {scanResult.scan_id && (
+                  <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      <strong>Scan ID:</strong> {scanResult.scan_id}
+                    </p>
+                  </div>
+                )}
+
+                {/* AI Response */}
+                {scanResult.response && (
+                  <div className="mb-4">
+                    <h3 className="font-medium text-gray-900 mb-2">AI Analysis:</h3>
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-gray-800 whitespace-pre-wrap">{scanResult.response}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Full JSON Response */}
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    <i className="fas fa-code mr-2"></i>
+                    View Raw Response
+                  </summary>
+                  <pre className="mt-3 bg-gray-900 text-gray-100 p-4 rounded-lg overflow-auto text-xs">
+{JSON.stringify(scanResult, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            )}
+
+            {/* Features Grid */}
+            {!scanResult && !loading && (
+              <div className="grid md:grid-cols-3 gap-6 mt-8">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                    <i className="fas fa-robot text-2xl text-blue-600"></i>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">AI-Powered Analysis</h3>
+                  <p className="text-gray-600 text-sm">
+                    Gemini 2.0 with WCAGAI 21-rule framework for comprehensive accessibility testing.
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                    <i className="fas fa-certificate text-2xl text-green-600"></i>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">AAG Badges</h3>
+                  <p className="text-gray-600 text-sm">
+                    Generate compliance badges (AAA/AA/A) based on WCAG 2.1 success criteria.
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                    <i className="fas fa-shield-alt text-2xl text-purple-600"></i>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Security Gates</h3>
+                  <p className="text-gray-600 text-sm">
+                    Built-in SSRF protection, prompt injection detection, and rate limiting.
+                  </p>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* Footer */}
+          <footer className="bg-white border-t mt-12">
+            <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <p>WCAGAI v2.0 - AI-Powered Accessibility Testing</p>
+                <div className="flex items-center space-x-4">
+                  <a href="/health" className="hover:text-blue-600" target="_blank">
+                    <i className="fas fa-heartbeat mr-1"></i>Health
+                  </a>
+                  <a href="/api/test/probes" className="hover:text-blue-600" target="_blank">
+                    <i className="fas fa-vial mr-1"></i>Tests
+                  </a>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('app'));
+    root.render(<App />);
+  </script>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fade-in 0.3s ease-out;
+    }
+  </style>
+</body>
+</html>
