@@ -693,6 +693,8 @@ app.use((req, res) => {
 // SERVER START
 // ============================================================================
 
+// Only start the server if NOT in Vercel serverless environment
+if (process.env.VERCEL !== '1') {
 app.listen(PORT, () => {
   logger.info(`WCAGAI Complete Stack v2.0 started on port ${PORT}`, {
     environment: NODE_ENV,
@@ -719,5 +721,8 @@ app.listen(PORT, () => {
 ╚═══════════════════════════════════════════════════════════════╝
   `);
 });
+  }
+
+// Export the app for Vercel serverless functions
 
 module.exports = app;
