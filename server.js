@@ -134,7 +134,39 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
-app.use(cors());
+// CORS Configuration for Vercel Frontend
+const allowedOrigins = [
+  'https://wcagai.vercel.app',
+  'https://wcagai-git-main-aaj441.vercel.app',
+  /\.vercel\.app$/,  // Allow all Vercel preview deployments
+  'http://localhost:3000',  // Local development
+  'http://localhost:8000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowedOrigins array or matches regex
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return allowed === origin;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      logger.warn('CORS blocked origin', { origin });
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID']
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
