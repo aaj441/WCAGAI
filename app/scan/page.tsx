@@ -253,6 +253,23 @@ export default function ScanPage() {
             >
               Provide the full URL (including protocol). The scan runs on the backend and may take a few moments.
             </div>
+            {errors.url.length > 0 && (
+              <div
+                id="scan-url-error"
+                role="alert"
+                style={{ 
+                  fontSize: 12,
+                  color: '#dc2626',
+                  marginTop: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+              >
+                <span aria-hidden="true">⚠️</span>
+                {errors.url[0]}
+              </div>
+            )}
           </div>
 
           <div style={{ marginBottom: 24 }}>
@@ -266,7 +283,12 @@ export default function ScanPage() {
               id="scan-keywords"
               name="keywords"
               value={keywords}
-              onChange={(e) => setKeywords(e.target.value)}
+              onChange={(e) => {
+                setKeywords(e.target.value);
+                setErrors(prev => ({ ...prev, keywords: [] }));
+              }}
+              aria-invalid={errors.keywords.length > 0}
+              aria-describedby={`keywords-help ${errors.keywords.length ? 'keywords-error' : ''}`}
               placeholder="navigation, header, login"
               rows={3}
               style={{
@@ -288,6 +310,23 @@ export default function ScanPage() {
             >
               Add keywords to help focus the scan on specific page regions or components.
             </div>
+            {errors.keywords.length > 0 && (
+              <div
+                id="keywords-error"
+                role="alert"
+                style={{ 
+                  fontSize: 12,
+                  color: '#dc2626',
+                  marginTop: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+              >
+                <span aria-hidden="true">⚠️</span>
+                {errors.keywords[0]}
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -338,6 +377,26 @@ export default function ScanPage() {
             </a>
           </div>
         </form>
+
+        {/* Live region for immediate announcements */}
+        <div
+          aria-live="assertive"
+          aria-atomic="true"
+          className="sr-only"
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: 'hidden',
+            clip: 'rect(0, 0, 0, 0)',
+            whiteSpace: 'nowrap',
+            borderWidth: 0
+          }}
+        >
+          {announcement}
+        </div>
 
         <div
           ref={resultsRef}
