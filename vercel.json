@@ -1,13 +1,61 @@
 {
+  "version": 2,
+  "name": "wcagai-v4",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "pricing.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend/src/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
   "functions": {
-    "api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 10
+    "backend/src/server.js": {
+      "maxDuration": 30
     }
   },
-  "env": {
-    "NEXT_PUBLIC_BACKEND_URL": "@backend_url"
-  },
-  "buildCommand": "npm run build || next build",
-  "outputDirectory": ".next"
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "regions": ["iad1"],
+  "framework": null
 }

@@ -1,0 +1,63 @@
+{
+  "name": "wcagai-v4-backend",
+  "version": "4.0.0",
+  "description": "WCAGAI v4.0 Backend API - Compliance Intelligence Platform",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "build": "prisma generate",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "node prisma/seed.js",
+    "db:studio": "prisma studio"
+  },
+  "keywords": [
+    "wcag",
+    "accessibility",
+    "compliance",
+    "ai",
+    "api",
+    "nodejs",
+    "express"
+  ],
+  "author": "WCAGAI Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1",
+    "express-rate-limit": "^7.1.5",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "axios": "^1.6.2",
+    "stripe": "^14.9.0",
+    "@prisma/client": "^5.6.0",
+    "redis": "^4.6.10",
+    "puppeteer": "^21.5.2",
+    "axe-core": "^4.8.2",
+    "axe-puppeteer": "^1.1.1",
+    "google-search-results-nodejs": "^2.1.0",
+    "pdf-lib": "^1.17.1",
+    "csv-writer": "^1.6.0",
+    "moment": "^2.29.4",
+    "nodemailer": "^6.9.7",
+    "winston": "^3.11.0",
+    "joi": "^17.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "prisma": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

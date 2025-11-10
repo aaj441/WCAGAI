@@ -1,0 +1,56 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[[services]]
+name = "wcagai-api"
+
+[services.variables]
+NODE_ENV = "production"
+PORT = "8080"
+
+# Database Configuration
+DATABASE_URL = "${{DATABASE_URL}}"
+
+# Authentication
+JWT_SECRET = "${{JWT_SECRET}}"
+
+# External APIs
+SERPAPI_KEY = "${{SERPAPI_KEY}}"
+XAI_API_KEY = "${{XAI_API_KEY}}"
+STRIPE_SECRET_KEY = "${{STRIPE_SECRET_KEY}}"
+STRIPE_WEBHOOK_SECRET = "${{STRIPE_WEBHOOK_SECRET}}"
+
+# Redis (for caching)
+REDIS_URL = "${{REDIS_URL}}"
+
+# Email/Notifications
+SMTP_HOST = "${{SMTP_HOST}}"
+SMTP_USER = "${{SMTP_USER}}"
+SMTP_PASS = "${{SMTP_PASS}}"
+
+# Analytics
+MIXPANEL_TOKEN = "${{MIXPANEL_TOKEN}}"
+
+[[services]]
+name = "wcagai-frontend"
+
+[sources]
+
+# Backend API
+[[services.source]]
+gitURL = "https://github.com/yourusername/wcagai-v4.git"
+
+# Frontend static files (for Vercel deployment)
+[static]
+guest = {
+  # Forward API requests to backend
+  api = {
+    url = "${{RAILWAY_PUBLIC_URL}}"
+  }
+}

@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: wcagai-postgres
+    environment:
+      POSTGRES_DB: wcagai_v4
+      POSTGRES_USER: wcagai_user
+      POSTGRES_PASSWORD: wcagai_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - wcagai-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: wcagai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - wcagai-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wcagai-backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://wcagai_user:wcagai_password@postgres:5432/wcagai_v4
+      REDIS_URL: redis://redis:6379
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - wcagai-network
+    restart: unless-stopped
+
+  # Frontend (Nginx serving static files)
+  frontend:
+    image: nginx:alpine
+    container_name: wcagai-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./:/usr/share/nginx/html
+    depends_on:
+      - backend
+    networks:
+      - wcagai-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  wcagai-network:
+    driver: bridge
