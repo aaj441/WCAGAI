@@ -129,10 +129,19 @@ export function generateApiKey(): string {
 }
 
 /**
- * Hash API key for storage
+ * Hash API key for storage (using bcrypt for stronger hashing)
  */
-export function hashApiKey(apiKey: string): string {
-  return crypto.createHash('sha256').update(apiKey).digest('hex');
+export async function hashApiKey(apiKey: string): Promise<string> {
+  const bcrypt = await import('bcryptjs');
+  return bcrypt.hash(apiKey, 12);
+}
+
+/**
+ * Verify API key against hash
+ */
+export async function verifyApiKey(apiKey: string, hash: string): Promise<boolean> {
+  const bcrypt = await import('bcryptjs');
+  return bcrypt.compare(apiKey, hash);
 }
 
 /**
@@ -191,13 +200,34 @@ export async function generateMFAQRCode(
 
 /**
  * Sanitize user input to prevent XSS
+ * 
+ * NOTE: For production use, consider using a dedicated library like DOMPurify
+ * or sanitize-html for more robust XSS prevention. This function provides
+ * basic sanitization but may not catch all edge cases.
+ * 
+ * For now, we use multiple passes to remove dangerous patterns.
  */
 export function sanitizeInput(input: string): string {
-  return input
+  // First, remove all HTML/script-related content
+  let sanitized = input
     .replace(/[<>]/g, '')
     .replace(/javascript:/gi, '')
-    .replace(/on\w+=/gi, '')
+    .replace(/data:/gi, '')
+    .replace(/vbscript:/gi, '')
     .trim();
+  
+  // Remove event handlers with multiple passes to handle variations
+  // Pass 1: Remove "on*=" patterns (e.g., onclick=)
+  sanitized = sanitized.replace(/\bon\w+\s*=/gi, '');
+  
+  // Pass 2: Remove "on*:" patterns (e.g., onclick:)
+  sanitized = sanitized.replace(/\bon\w+\s*:/gi, '');
+  
+  // Pass 3: Final cleanup - remove any remaining "on" followed by word chars
+  // This is conservative but helps prevent attribute injection
+  sanitized = sanitized.replace(/\bon\w+/gi, '');
+  
+  return sanitized;
 }
 
 /**
@@ -206,8 +236,9 @@ export function sanitizeInput(input: string): string {
 export function isValidUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    // Only allow http and https protocols
-    if (!['http:', 'https:'].includes(parsed.protocol)) {
+    // Only allow http and https protocols - block data:, vbscript:, javascript:
+    const allowedProtocols = ['http:', 'https:'];
+    if (!allowedProtocols.includes(parsed.protocol.toLowerCase())) {
       return false;
     }
     // Block localhost and private IPs in production
