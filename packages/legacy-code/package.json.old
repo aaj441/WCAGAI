@@ -1,0 +1,49 @@
+{
+  "name": "wcagai-v4",
+  "version": "4.0.0",
+  "description": "WCAGAI v4.0 - Compliance Intelligence Platform",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "dev": "concurrently &quot;npm run server:dev&quot; &quot;npm run client:dev&quot;",
+    "server:dev": "cd backend && npm run dev",
+    "client:dev": "python -m http.server 8080",
+    "build": "cd backend && npm run build",
+    "start": "cd backend && npm start",
+    "test": "cd backend && npm test",
+    "deploy:railway": "railway up",
+    "deploy:vercel": "vercel --prod",
+    "db:generate": "cd backend && npx prisma generate",
+    "db:push": "cd backend && npx prisma db push",
+    "db:migrate": "cd backend && npx prisma migrate dev",
+    "db:seed": "cd backend && npx prisma db seed"
+  },
+  "keywords": [
+    "wcag",
+    "accessibility",
+    "compliance",
+    "ai",
+    "fintech",
+    "healthcare",
+    "eaa",
+    "ada"
+  ],
+  "author": "WCAGAI Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/wcagai-v4.git"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "vercel": "^32.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.6.0",
+    "prisma": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
+</create-file>
