@@ -39,7 +39,7 @@
     "stripe": "^14.9.0",
     "@prisma/client": "^5.6.0",
     "redis": "^4.6.10",
-    "puppeteer": "^21.5.2",
+    "puppeteer": "^23.0.0",
     "axe-core": "^4.8.2",
     "axe-puppeteer": "^1.1.1",
     "google-search-results-nodejs": "^2.1.0",
