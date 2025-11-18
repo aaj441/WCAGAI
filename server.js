@@ -146,6 +146,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static frontend
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Metrics middleware (must be before routes)
+const { metricsMiddleware } = require('./backend/services/metrics');
+app.use(metricsMiddleware);
+
+// Health check routes (zero-downtime deployment)
+const healthRoutes = require('./backend/routes/health');
+app.use('/', healthRoutes);
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
