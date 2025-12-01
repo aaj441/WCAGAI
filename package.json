@@ -1,47 +1,65 @@
 {
-  "name": "wcag-ai-platform",
-  "version": "1.0.0",
-  "description": "WCAG AI Platform - Monorepo for compliance intelligence",
+  "name": "infinitysoul-platform",
+  "version": "2.0.0",
+  "description": "InfinitySoul WCAG Compliance Intelligence Platform - Enterprise-grade accessibility scanning and compliance management",
   "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "tsx apps/scanner/src/scripts/validate.ts",
-    "build": "tsc --build",
-    "clean": "rm -rf dist node_modules",
-    "test": "echo \"Tests to be implemented\"",
-    "db:generate": "cd packages/db && npx prisma generate",
-    "db:push": "cd packages/db && npx prisma db push",
-    "db:migrate": "cd packages/db && npx prisma migrate dev"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "db:generate": "turbo run db:generate",
+    "db:push": "turbo run db:push",
+    "db:migrate": "turbo run db:migrate",
+    "db:studio": "cd packages/database && npx prisma studio",
+    "type-check": "turbo run type-check",
+    "vercel-build": "turbo run build --filter=web"
   },
   "keywords": [
     "wcag",
     "accessibility",
+    "a11y",
     "compliance",
-    "ai",
-    "monorepo"
+    "infinitysoul",
+    "ada",
+    "section-508",
+    "enterprise",
+    "saas"
   ],
-  "author": "WCAGAI Team",
-  "license": "MIT",
-  "dependencies": {
-    "@prisma/client": "^5.6.0",
-    "bullmq": "^4.15.0",
-    "puppeteer": "^21.5.0",
-    "@axe-core/puppeteer": "^4.8.0",
-    "pdf-lib": "^1.17.1",
-    "openai": "^4.20.0",
-    "dotenv": "^16.3.1"
-  },
-  "devDependencies": {
-    "prisma": "^5.6.0",
-    "typescript": "^5.3.0",
-    "@types/node": "^20.10.0",
-    "tsx": "^4.6.0"
+  "author": "InfinitySoul LLC",
+  "license": "PROPRIETARY",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aaj441/WCAGAI.git"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=18.17.0",
+    "npm": ">=9.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "npm@10.2.0",
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.1",
+    "prettier-plugin-tailwindcss": "^0.5.9",
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.8.0",
+    "@vercel/analytics": "^1.1.1",
+    "@vercel/speed-insights": "^1.0.2"
   }
 }

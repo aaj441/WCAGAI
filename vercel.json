@@ -1,0 +1,84 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "turbo run build",
+  "devCommand": "turbo run dev",
+  "installCommand": "npm install",
+  "framework": null,
+  "outputDirectory": "apps/web/.next",
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "apps/api/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "apps/api/index.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "apps/web/$1"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "REDIS_URL": "@redis-url",
+    "GEMINI_API_KEY": "@gemini-api-key",
+    "SERPAPI_KEY": "@serpapi-key",
+    "HUBSPOT_API_KEY": "@hubspot-api-key",
+    "HUNTER_API_KEY": "@hunter-api-key",
+    "OPENAI_API_KEY": "@openai-api-key"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/wcagai",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/wcag-ai",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
