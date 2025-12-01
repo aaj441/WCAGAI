@@ -1,0 +1,462 @@
+// InfinitySoul Platform - Production Database Schema
+// Optimized for Vercel Postgres with connection pooling
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_POOLED")
+}
+
+// ============================================================================
+// TENANT MANAGEMENT
+// ============================================================================
+
+model Tenant {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  domain      String?  @unique
+  planType    PlanType @default(FREE)
+  status      TenantStatus @default(ACTIVE)
+  
+  // Limits
+  maxScansPerMonth Int @default(10)
+  maxTeamMembers   Int @default(1)
+  maxReportsStored Int @default(30)
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  users       User[]
+  scans       Scan[]
+  reports     Report[]
+  domains     Domain[]
+  apiKeys     ApiKey[]
+  webhooks    Webhook[]
+  
+  @@index([slug])
+  @@index([status])
+}
+
+enum PlanType {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+  TRIAL
+}
+
+// ============================================================================
+// USER MANAGEMENT
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          UserRole  @default(MEMBER)
+  
+  // Authentication
+  emailVerified DateTime?
+  image         String?
+  
+  // Tenant relationship
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  scans       Scan[]
+  reports     Report[]
+  activities  ActivityLog[]
+  
+  @@index([tenantId])
+  @@index([email])
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+// ============================================================================
+// DOMAIN & WEBSITE MANAGEMENT
+// ============================================================================
+
+model Domain {
+  id       String @id @default(cuid())
+  url      String
+  name     String?
+  industry Industry?
+  
+  // Tenant relationship
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Status
+  isActive    Boolean @default(true)
+  lastScanned DateTime?
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  scans       Scan[]
+  reports     Report[]
+  pages       Page[]
+  
+  @@unique([tenantId, url])
+  @@index([tenantId])
+  @@index([industry])
+}
+
+enum Industry {
+  HEALTHCARE
+  FINANCE
+  ECOMMERCE
+  EDUCATION
+  GOVERNMENT
+  TECHNOLOGY
+  LEGAL
+  NONPROFIT
+  REAL_ESTATE
+  HOSPITALITY
+  OTHER
+}
+
+model Page {
+  id       String @id @default(cuid())
+  url      String
+  title    String?
+  
+  domainId String
+  domain   Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  
+  // Scan results
+  lastScanned      DateTime?
+  complianceScore  Float?
+  violationCount   Int       @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  violations Violation[]
+  
+  @@unique([domainId, url])
+  @@index([domainId])
+}
+
+// ============================================================================
+// SCANNING & COMPLIANCE
+// ============================================================================
+
+model Scan {
+  id          String     @id @default(cuid())
+  scanType    ScanType   @default(FULL)
+  status      ScanStatus @default(PENDING)
+  
+  // Target
+  domainId String
+  domain   Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  
+  // Tenant & User
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  userId String?
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Results
+  startedAt    DateTime?
+  completedAt  DateTime?
+  pagesScanned Int       @default(0)
+  
+  // Compliance metrics
+  complianceScore Float?   @default(0)
+  violationCount  Int      @default(0)
+  wcagLevel       WcagLevel @default(AA)
+  
+  // Error handling
+  errorMessage String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  violations Violation[]
+  reports    Report[]
+  
+  @@index([tenantId])
+  @@index([domainId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ScanType {
+  QUICK
+  FULL
+  DEEP
+  SCHEDULED
+}
+
+enum ScanStatus {
+  PENDING
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WcagLevel {
+  A
+  AA
+  AAA
+}
+
+// ============================================================================
+// VIOLATIONS & ISSUES
+// ============================================================================
+
+model Violation {
+  id          String   @id @default(cuid())
+  
+  // WCAG Details
+  wcagCode    String   // e.g., "1.1.1", "2.4.7"
+  wcagLevel   WcagLevel
+  severity    Severity
+  category    ViolationCategory
+  
+  // Issue details
+  description String
+  impact      String
+  helpUrl     String?
+  
+  // Technical details
+  selector    String?  // CSS selector
+  html        String?  // Offending HTML
+  xpath       String?  // XPath to element
+  
+  // Location
+  pageId String?
+  page   Page?  @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  
+  scanId String
+  scan   Scan   @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  
+  // Resolution
+  status      IssueStatus @default(OPEN)
+  resolvedAt  DateTime?
+  resolution  String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([scanId])
+  @@index([pageId])
+  @@index([severity])
+  @@index([status])
+}
+
+enum Severity {
+  CRITICAL
+  SERIOUS
+  MODERATE
+  MINOR
+}
+
+enum ViolationCategory {
+  PERCEIVABLE
+  OPERABLE
+  UNDERSTANDABLE
+  ROBUST
+}
+
+enum IssueStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  WONT_FIX
+  FALSE_POSITIVE
+}
+
+// ============================================================================
+// REPORTS & ANALYTICS
+// ============================================================================
+
+model Report {
+  id          String       @id @default(cuid())
+  title       String
+  reportType  ReportType   @default(COMPLIANCE)
+  format      ReportFormat @default(PDF)
+  
+  // Content
+  summary     String?
+  pdfUrl      String?
+  jsonData    Json?
+  
+  // Associations
+  scanId   String?
+  scan     Scan?   @relation(fields: [scanId], references: [id], onDelete: SetNull)
+  
+  domainId String
+  domain   Domain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  userId String?
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Sharing
+  isPublic   Boolean @default(false)
+  shareToken String? @unique
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime?
+  
+  @@index([tenantId])
+  @@index([domainId])
+  @@index([shareToken])
+}
+
+enum ReportType {
+  COMPLIANCE
+  EXECUTIVE
+  TECHNICAL
+  COMPARATIVE
+}
+
+enum ReportFormat {
+  PDF
+  HTML
+  JSON
+  CSV
+}
+
+// ============================================================================
+// API & INTEGRATIONS
+// ============================================================================
+
+model ApiKey {
+  id        String    @id @default(cuid())
+  name      String
+  key       String    @unique
+  
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Permissions
+  scopes    String[]  // ["scan:read", "scan:write", "report:read"]
+  
+  // Rate limiting
+  rateLimit Int @default(1000)
+  
+  // Status
+  isActive  Boolean   @default(true)
+  lastUsed  DateTime?
+  expiresAt DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([key])
+}
+
+model Webhook {
+  id       String  @id @default(cuid())
+  name     String
+  url      String
+  
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Events to listen to
+  events   String[] // ["scan.completed", "violation.detected"]
+  
+  // Security
+  secret   String
+  
+  // Status
+  isActive Boolean @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  deliveries WebhookDelivery[]
+  
+  @@index([tenantId])
+}
+
+model WebhookDelivery {
+  id         String   @id @default(cuid())
+  
+  webhookId  String
+  webhook    Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  
+  // Delivery details
+  event      String
+  payload    Json
+  response   Json?
+  
+  // Status
+  success    Boolean
+  statusCode Int?
+  error      String?
+  
+  // Timing
+  sentAt     DateTime @default(now())
+  duration   Int?     // milliseconds
+  
+  @@index([webhookId])
+  @@index([sentAt])
+}
+
+// ============================================================================
+// AUDIT & ACTIVITY LOGS
+// ============================================================================
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  action    String   // e.g., "scan.created", "user.login"
+  entity    String?  // e.g., "Scan", "User"
+  entityId  String?
+  
+  userId String?
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Context
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
